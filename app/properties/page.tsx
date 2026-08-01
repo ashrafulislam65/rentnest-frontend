@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 
-import { useCategories, useProperties, type PropertyFilters } from '@/hooks/useProperties';
+
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Button } from '../../components/ui/button';
 import { PropertyCard } from '../../components/shared/PropertyCard';
+import { PropertyFilters, useCategories, useProperties } from '../../hooks/useProperties';
 
 export default function PropertiesPage() {
   const [filters, setFilters] = useState<PropertyFilters>({});

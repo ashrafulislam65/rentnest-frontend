@@ -5,7 +5,9 @@ import './globals.css';
 
 import { Toaster } from 'sonner';
 import { QueryProvider } from '../providers/query-provider';
-import Navbar from '../components/navbar/Navbar';
+import { Navbar } from '../components/shared/Navbar';
+
+
 
 const inter = Inter({ subsets: ['latin'] });
 
