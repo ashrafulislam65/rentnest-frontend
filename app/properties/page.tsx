@@ -32,21 +32,21 @@ export default function PropertiesPage() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="minPrice">Min price</Label>
+          <Label htmlFor="priceMin">Min price</Label>
           <Input
-            id="minPrice"
+            id="priceMin"
             type="number"
-            value={draft.minPrice ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, minPrice: Number(e.target.value) || undefined }))}
+            value={draft.priceMin ?? ''}
+            onChange={(e) => setDraft((d) => ({ ...d, priceMin: Number(e.target.value) || undefined }))}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="maxPrice">Max price</Label>
+          <Label htmlFor="priceMax">Max price</Label>
           <Input
-            id="maxPrice"
+            id="priceMax"
             type="number"
-            value={draft.maxPrice ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, maxPrice: Number(e.target.value) || undefined }))}
+            value={draft.priceMax ?? ''}
+            onChange={(e) => setDraft((d) => ({ ...d, priceMax: Number(e.target.value) || undefined }))}
           />
         </div>
         <div className="space-y-1.5">

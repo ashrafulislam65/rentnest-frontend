@@ -9,8 +9,8 @@ import { apiClient } from '../lib/api-client';
 
 export interface PropertyFilters {
   location?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  priceMin?: number;
+  priceMax?: number;
   categoryId?: string;
 }
 

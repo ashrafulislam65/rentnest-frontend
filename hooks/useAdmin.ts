@@ -20,15 +20,15 @@ export function useAdminUsers() {
 export function useToggleUserBan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const res = await apiClient.patch<ApiResponse<User>>(`/admin/users/${userId}/ban`);
+    mutationFn: async ({ userId, isBanned }: { userId: string; isBanned: boolean }) => {
+      const res = await apiClient.patch<ApiResponse<User>>(`/admin/users/${userId}/ban`, { isBanned });
       return res.data.data;
     },
-    onMutate: async (userId) => {
+    onMutate: async ({ userId, isBanned }) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] });
       const previous = queryClient.getQueryData<User[]>(['admin-users']);
       queryClient.setQueryData<User[]>(['admin-users'], (old) =>
-        old?.map((u) => (u.id === userId ? { ...u, isBanned: !u.isBanned } : u))
+        old?.map((u) => (u.id === userId ? { ...u, isBanned } : u))
       );
       return { previous };
     },

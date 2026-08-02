@@ -73,7 +73,7 @@ function AdminUsersContent() {
                           size="sm"
                           variant={u.isBanned ? 'outline' : 'destructive'}
                           disabled={isPending}
-                          onClick={() => toggleBan(u.id)}
+                          onClick={() => toggleBan({ userId: u.id, isBanned: !u.isBanned })}
                         >
                           {u.isBanned ? 'Unban' : 'Ban'}
                         </Button>

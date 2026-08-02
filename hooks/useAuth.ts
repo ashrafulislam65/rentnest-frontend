@@ -4,12 +4,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-
-
-
 import { apiClient, getApiErrorMessage } from '../lib/api-client';
+import { decodeJwtPayload } from '../lib/jwt';
 import { useAuthStore } from '../store/auth-store';
-import { ApiResponse, User, UserRole } from '../types';
+import type { ApiResponse, User, UserRole } from '../types';
 
 interface LoginPayload {
   email: string;
@@ -23,12 +21,29 @@ interface RegisterPayload {
   role: UserRole;
 }
 
-interface AuthResponseData {
-  accessToken: string;
-  user: User;
+interface TokenResponse {
+  token: string;
 }
 
-// Call this once near the app root to hydrate auth state from the token.
+interface JwtPayload {
+  id: string;
+  email: string;
+  role: UserRole;
+  isBanned: boolean;
+}
+
+function userFromToken(token: string, fallbackName = ''): User | null {
+  const payload = decodeJwtPayload<JwtPayload>(token);
+  if (!payload) return null;
+  return {
+    id: payload.id,
+    email: payload.email,
+    role: payload.role,
+    isBanned: payload.isBanned,
+    name: fallbackName,
+  };
+}
+
 export function useCurrentUser() {
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -40,9 +55,16 @@ export function useCurrentUser() {
         setUser(null);
         return null;
       }
-      const res = await apiClient.get<ApiResponse<User>>('/auth/me');
-      setUser(res.data.data);
-      return res.data.data;
+      // Prefer /auth/me for full profile (name, etc). Fall back to token if it fails.
+      try {
+        const res = await apiClient.get<ApiResponse<User>>('/auth/me');
+        setUser(res.data.data);
+        return res.data.data;
+      } catch {
+        const fallback = userFromToken(token);
+        setUser(fallback);
+        return fallback;
+      }
     },
   });
 }
@@ -54,19 +76,26 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
-      const res = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/login', payload);
+      const res = await apiClient.post<ApiResponse<TokenResponse>>('/auth/login', payload);
       return res.data.data;
     },
     onSuccess: (data) => {
-      Cookies.set('accessToken', data.accessToken, { expires: 7 });
-      setUser(data.user);
+      Cookies.set('accessToken', data.token, { expires: 7 });
+
+      const user = userFromToken(data.token);
+      if (!user) {
+        toast.error('Logged in, but could not read your account info.');
+        return;
+      }
+
+      setUser(user);
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success('Logged in successfully');
 
       const destination =
-        data.user.role === 'ADMIN'
+        user.role === 'ADMIN'
           ? '/dashboard/admin'
-          : data.user.role === 'LANDLORD'
+          : user.role === 'LANDLORD'
           ? '/dashboard/landlord'
           : '/dashboard/tenant';
       router.push(destination);
@@ -82,7 +111,7 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (payload: RegisterPayload) => {
-      const res = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/register', payload);
+      const res = await apiClient.post<ApiResponse<TokenResponse>>('/auth/register', payload);
       return res.data.data;
     },
     onSuccess: () => {
