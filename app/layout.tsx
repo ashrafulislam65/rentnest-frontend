@@ -1,15 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Manrope } from 'next/font/google';
 import './globals.css';
-
-
-import { Toaster } from 'sonner';
 import { QueryProvider } from '../providers/query-provider';
 import { Navbar } from '../components/shared/Navbar';
+import { Toaster } from 'sonner';
 
-
-
-const inter = Inter({ subsets: ['latin'] });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
   title: 'RentNest — Find Your Next Home',
@@ -19,9 +15,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${manrope.className} antialiased`}>
         <QueryProvider>
-          <Navbar/>
+          <Navbar />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Toaster position="top-right" richColors />
         </QueryProvider>
