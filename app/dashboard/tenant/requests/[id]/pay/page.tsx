@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { useCreatePaymentIntent } from '../../../../../../hooks/usePayments';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../components/ui/card';
-import { Skeleton } from '../../../../../../components/ui/skeleton';
-import { StripeCheckoutForm } from '../../../../../../components/forms/StripeCheckoutForm';
-import { RoleGuard } from '../../../../../../components/shared/RoleGuard';
+import { useCreatePaymentIntent } from '@/hooks/usePayments';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StripeCheckoutForm } from '@/components/forms/StripeCheckoutForm';
+import { RoleGuard } from '@/components/shared/RoleGuard';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -43,10 +43,11 @@ function PayPageContent({ rentalId }: { rentalId: string }) {
   );
 }
 
-export default function TenantPayPage({ params }: { params: { id: string } }) {
+export default function TenantPayPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   return (
     <RoleGuard role="TENANT">
-      <PayPageContent rentalId={params.id} />
+      <PayPageContent rentalId={id} />
     </RoleGuard>
   );
 }

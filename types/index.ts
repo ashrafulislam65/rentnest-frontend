@@ -22,6 +22,7 @@ export interface Property {
   location: string;
   categoryId: string;
   category?: Category;
+  amenities: string[];
   images: string[];
   landlordId: string;
   isAvailable: boolean;

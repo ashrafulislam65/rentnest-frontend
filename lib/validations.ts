@@ -21,5 +21,6 @@ export const createPropertySchema = z.object({
   location: z.string().min(2, 'Location is required'),
   categoryId: z.string().min(1, 'Select a category'),
   images: z.string().min(1, 'Add at least one image URL'),
+  amenities: z.string().min(1, 'List at least one amenity (comma separated)'),
 });
 export type CreatePropertyFormValues = z.infer<typeof createPropertySchema>;

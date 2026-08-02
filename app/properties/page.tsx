@@ -1,95 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import { use } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { MapPin } from 'lucide-react';
+import { useProperty } from '@/hooks/useProperties';
+import { useAuthStore } from '@/store/auth-store';
+import { useSubmitRentalRequest } from '@/hooks/useRentals';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency, PLACEHOLDER_IMAGE } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 
-import { Label } from '../../components/ui/label';
-import { Input } from '../../components/ui/input';
-import { Skeleton } from '../../components/ui/skeleton';
-import { Button } from '../../components/ui/button';
-import { PropertyCard } from '../../components/shared/PropertyCard';
-import { PropertyFilters, useCategories, useProperties } from '../../hooks/useProperties';
+export default function PropertyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const { data: property, isLoading } = useProperty(id);
+  const { user } = useAuthStore();
+  const router = useRouter();
+  const { mutate: requestRental, isPending } = useSubmitRentalRequest();
 
-export default function PropertiesPage() {
-  const [filters, setFilters] = useState<PropertyFilters>({});
-  const [draft, setDraft] = useState<PropertyFilters>({});
+  const handleRequest = () => {
+    if (!user) {
+      router.push(`/login?redirect=/properties/${id}`);
+      return;
+    }
+    if (user.role !== 'TENANT') return;
+    requestRental(id);
+  };
 
-  const { data: properties, isLoading } = useProperties(filters);
-  const { data: categories } = useCategories();
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-4 p-6">
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+
+  if (!property) return null;
+
+  const images = property.images && property.images.length > 0 ? property.images : [PLACEHOLDER_IMAGE];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Browse Properties</h1>
+    <div className="mx-auto max-w-5xl px-6 py-14">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {images.map((img, i) => (
+          <div key={i} className="relative h-44 overflow-hidden rounded-md bg-muted">
+            <Image src={img} alt={property.title} fill className="object-cover" unoptimized={img.startsWith('data:')} />
+          </div>
+        ))}
+      </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-4 rounded-lg border p-4 sm:grid-cols-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            placeholder="e.g. Dhaka"
-            value={draft.location ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
-          />
+      <div className="mt-8 flex flex-col justify-between gap-4 border-b border-border pb-8 sm:flex-row sm:items-start">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wider text-accent">
+            {property.category?.name ?? 'Property'}
+          </p>
+          <h1 className="font-display text-4xl">{property.title}</h1>
+          <p className="mt-2 flex items-center gap-1 text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            {property.location}
+          </p>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="priceMin">Min price</Label>
-          <Input
-            id="priceMin"
-            type="number"
-            value={draft.priceMin ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, priceMin: Number(e.target.value) || undefined }))}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="priceMax">Max price</Label>
-          <Input
-            id="priceMax"
-            type="number"
-            value={draft.priceMax ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, priceMax: Number(e.target.value) || undefined }))}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={draft.categoryId ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, categoryId: e.target.value || undefined }))}
-          >
-            <option value="">All</option>
-            {categories?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="sm:col-span-4">
-          <Button onClick={() => setFilters(draft)}>Apply Filters</Button>
+        <div className="text-right">
+          <p className="font-display text-3xl">{formatCurrency(property.price)}</p>
+          <p className="text-sm text-muted-foreground">per month</p>
         </div>
       </div>
 
-      {isLoading && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
-        </div>
-      )}
+      <p className="mt-8 max-w-3xl leading-relaxed text-foreground/90">{property.description}</p>
 
-      {!isLoading && properties?.length === 0 && (
-        <p className="text-muted-foreground">No properties match your filters.</p>
-      )}
-
-      {!isLoading && properties && properties.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      )}
+      <div className="mt-10">
+        <Button
+          variant="accent"
+          size="lg"
+          onClick={handleRequest}
+          disabled={isPending || !property.isAvailable || (!!user && user.role !== 'TENANT')}
+        >
+          {isPending
+            ? 'Submitting request...'
+            : !property.isAvailable
+            ? 'Not Available'
+            : 'Request to Rent'}
+        </Button>
+        {user && user.role !== 'TENANT' && (
+          <p className="mt-2 text-sm text-muted-foreground">Only tenant accounts can request rentals.</p>
+        )}
+      </div>
     </div>
   );
 }
