@@ -3,11 +3,12 @@
 import { use, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { useCreatePaymentIntent } from '@/hooks/usePayments';
+import { RoleGuard } from '@/components/shared/RoleGuard';
+import { DashboardShell } from '@/components/shared/DashboardShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StripeCheckoutForm } from '@/components/forms/StripeCheckoutForm';
-import { RoleGuard } from '@/components/shared/RoleGuard';
+import { useCreatePaymentIntent } from '@/hooks/usePayments';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -20,10 +21,14 @@ function PayPageContent({ rentalId }: { rentalId: string }) {
   }, [rentalId]);
 
   return (
-    <div className="mx-auto max-w-md p-6">
+    <div className="max-w-md">
+      <div className="mb-6">
+        <p className="text-sm font-semibold uppercase tracking-wider text-accent">Dashboard</p>
+        <h1 className="font-display text-3xl">Complete Payment</h1>
+      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Complete Payment</CardTitle>
+          <CardTitle>Payment Details</CardTitle>
         </CardHeader>
         <CardContent>
           {isPending && <Skeleton className="h-40 w-full" />}
@@ -47,7 +52,9 @@ export default function TenantPayPage({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   return (
     <RoleGuard role="TENANT">
-      <PayPageContent rentalId={id} />
+      <DashboardShell role="TENANT">
+        <PayPageContent rentalId={id} />
+      </DashboardShell>
     </RoleGuard>
   );
 }

@@ -1,116 +1,134 @@
 'use client';
 
-import { use } from 'react';
-import Image from 'next/image';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { MapPin, Check } from 'lucide-react';
-import { useProperty } from '@/hooks/useProperties';
-import { useAuthStore } from '@/store/auth-store';
-import { useSubmitRentalRequest } from '@/hooks/useRentals';
-import { Skeleton } from '@/components/ui/skeleton';
-import { formatCurrency, PLACEHOLDER_IMAGE } from '@/lib/utils';
+import { z } from 'zod';
+import { RoleGuard } from '@/components/shared/RoleGuard';
+import { DashboardShell } from '@/components/shared/DashboardShell';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCategories, useCreateProperty } from '@/hooks/useProperties';
+import { createPropertySchema } from '@/lib/validations';
 
-export default function PropertyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { data: property, isLoading } = useProperty(id);
-  const { user } = useAuthStore();
+function NewPropertyContent() {
   const router = useRouter();
-  const { mutate: requestRental, isPending } = useSubmitRentalRequest();
+  const { data: categories } = useCategories();
+  const { mutate: createProperty, isPending } = useCreateProperty();
 
-  const handleRequest = () => {
-    if (!user) {
-      router.push(`/login?redirect=/properties/${id}`);
-      return;
-    }
-    if (user.role !== 'TENANT') return;
-    requestRental(id);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.input<typeof createPropertySchema>, unknown, z.output<typeof createPropertySchema>>({
+    resolver: zodResolver(createPropertySchema),
+  });
+
+  const onSubmit = (values: z.output<typeof createPropertySchema>) => {
+    createProperty(
+      {
+        title: values.title,
+        description: values.description,
+        price: values.price,
+        location: values.location,
+        categoryId: values.categoryId,
+        images: values.images.split(',').map((url) => url.trim()).filter(Boolean),
+        amenities: values.amenities.split(',').map((item) => item.trim()).filter(Boolean),
+      },
+      { onSuccess: () => router.push('/dashboard/landlord') }
+    );
   };
 
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-5xl space-y-4 p-6">
-        <Skeleton className="h-96 w-full" />
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
-  }
-
-  if (!property) return null;
-
-  const hasImages = property.images && property.images.length > 0;
-  const images = hasImages ? property.images : [PLACEHOLDER_IMAGE];
-
   return (
-    <div className="mx-auto max-w-5xl px-6 py-14">
-      {images.length === 1 ? (
-        <div className="relative h-96 w-full overflow-hidden rounded-md bg-muted">
-          <Image src={images[0]} alt={property.title} fill className="object-cover" unoptimized={!hasImages} />
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {images.map((img, i) => (
-            <div key={i} className="relative h-44 overflow-hidden rounded-md bg-muted">
-              <Image src={img} alt={property.title} fill className="object-cover" unoptimized={!hasImages} />
+    <div className="max-w-xl">
+      <div className="mb-6">
+        <p className="text-sm font-semibold uppercase tracking-wider text-accent">Dashboard</p>
+        <h1 className="font-display text-3xl">List a New Property</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Property Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" placeholder="Cozy 2-bed apartment" {...register('title')} />
+              {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
             </div>
-          ))}
-        </div>
-      )}
 
-      <div className="mt-8 flex flex-col justify-between gap-4 border-b border-border pb-8 sm:flex-row sm:items-start">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-accent">
-            {property.category?.name ?? 'Property'}
-          </p>
-          <h1 className="font-display text-4xl">{property.title}</h1>
-          <p className="mt-2 flex items-center gap-1 text-muted-foreground">
-            <MapPin className="h-4 w-4" />
-            {property.location}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-display text-3xl">{formatCurrency(property.price)}</p>
-          <p className="text-sm text-muted-foreground">per month</p>
-        </div>
-      </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                rows={4}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                {...register('description')}
+              />
+              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+            </div>
 
-      <p className="mt-8 max-w-3xl leading-relaxed text-foreground/90">{property.description}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="price">Price / month</Label>
+                <Input id="price" type="number" {...register('price')} />
+                {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="location">Location</Label>
+                <Input id="location" placeholder="Dhaka, Bangladesh" {...register('location')} />
+                {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
+              </div>
+            </div>
 
-      {property.amenities && property.amenities.length > 0 && (
-        <div className="mt-8">
-          <h2 className="font-display text-xl">Amenities</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {property.amenities.map((item) => (
-              <span
-                key={item}
-                className="flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-sm"
+            <div className="space-y-1.5">
+              <Label htmlFor="categoryId">Category</Label>
+              <select
+                id="categoryId"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                {...register('categoryId')}
               >
-                <Check className="h-3.5 w-3.5 text-accent" />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+                <option value="">Select a category</option>
+                {categories?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {errors.categoryId && <p className="text-sm text-destructive">{errors.categoryId.message}</p>}
+            </div>
 
-      <div className="mt-10">
-        <Button
-          variant="accent"
-          size="lg"
-          onClick={handleRequest}
-          disabled={isPending || !property.isAvailable || (!!user && user.role !== 'TENANT')}
-        >
-          {isPending
-            ? 'Submitting request...'
-            : !property.isAvailable
-            ? 'Not Available'
-            : 'Request to Rent'}
-        </Button>
-        {user && user.role !== 'TENANT' && (
-          <p className="mt-2 text-sm text-muted-foreground">Only tenant accounts can request rentals.</p>
-        )}
-      </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="images">Image URLs (comma separated)</Label>
+              <Input id="images" placeholder="https://..., https://..." {...register('images')} />
+              {errors.images && <p className="text-sm text-destructive">{errors.images.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="amenities">Amenities (comma separated)</Label>
+              <Input id="amenities" placeholder="WiFi, Parking, AC" {...register('amenities')} />
+              {errors.amenities && <p className="text-sm text-destructive">{errors.amenities.message}</p>}
+            </div>
+
+            <Button type="submit" variant="accent" className="w-full" disabled={isPending}>
+              {isPending ? 'Creating...' : 'Create Property'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+export default function NewPropertyPage() {
+  return (
+    <RoleGuard role="LANDLORD">
+      <DashboardShell role="LANDLORD">
+        <NewPropertyContent />
+      </DashboardShell>
+    </RoleGuard>
   );
 }

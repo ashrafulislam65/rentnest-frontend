@@ -1,21 +1,24 @@
 'use client';
 
-import { RoleGuard } from "../../../../components/shared/RoleGuard";
-import { StatusBadge } from "../../../../components/shared/StatusBadge";
-import { Button } from "../../../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
-import { Skeleton } from "../../../../components/ui/skeleton";
-import { useHandleRentalRequest, useLandlordRequests } from "../../../../hooks/useRentals";
-
-
+import { RoleGuard } from '@/components/shared/RoleGuard';
+import { DashboardShell } from '@/components/shared/DashboardShell';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useHandleRentalRequest, useLandlordRequests } from '@/hooks/useRentals';
+import { formatDate } from '@/lib/utils';
 
 function LandlordRequestsContent() {
   const { data: requests, isLoading } = useLandlordRequests();
   const { mutate: handleRequest, isPending } = useHandleRentalRequest();
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Rental Requests</h1>
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-wider text-accent">Dashboard</p>
+        <h1 className="font-display text-3xl">Rental Requests</h1>
+      </div>
 
       <Card>
         <CardHeader>
@@ -27,9 +30,9 @@ function LandlordRequestsContent() {
             <p className="text-muted-foreground">No rental requests yet.</p>
           )}
           {!isLoading && requests && requests.length > 0 && (
-            <div className="divide-y">
+            <div className="divide-y divide-border">
               {requests.map((r) => (
-                <div key={r.id} className="flex items-center justify-between py-3">
+                <div key={r.id} className="flex items-center justify-between py-4">
                   <div>
                     <p className="font-medium">{r.property?.title ?? 'Property'}</p>
                     <p className="text-sm text-muted-foreground">
@@ -42,6 +45,7 @@ function LandlordRequestsContent() {
                       <>
                         <Button
                           size="sm"
+                          variant="accent"
                           disabled={isPending}
                           onClick={() => handleRequest({ id: r.id, status: 'APPROVED' })}
                         >
@@ -71,7 +75,9 @@ function LandlordRequestsContent() {
 export default function LandlordRequestsPage() {
   return (
     <RoleGuard role="LANDLORD">
-      <LandlordRequestsContent />
+      <DashboardShell role="LANDLORD">
+        <LandlordRequestsContent />
+      </DashboardShell>
     </RoleGuard>
   );
 }

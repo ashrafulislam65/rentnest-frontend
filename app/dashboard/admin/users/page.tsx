@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useAdminUsers, useToggleUserBan } from '../../../../hooks/useAdmin';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
-import { Skeleton } from '../../../../components/ui/skeleton';
-import { Badge } from '../../../../components/ui/badge';
-import { Button } from '../../../../components/ui/button';
-import { RoleGuard } from '../../../../components/shared/RoleGuard';
-
+import { RoleGuard } from '@/components/shared/RoleGuard';
+import { DashboardShell } from '@/components/shared/DashboardShell';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAdminUsers, useToggleUserBan } from '@/hooks/useAdmin';
 
 const PAGE_SIZE = 10;
 
@@ -27,8 +27,11 @@ function AdminUsersContent() {
   const paginated = filtered?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">User Management</h1>
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-wider text-accent">Dashboard</p>
+        <h1 className="font-display text-3xl">User Management</h1>
+      </div>
 
       <Card>
         <CardHeader>
@@ -49,7 +52,7 @@ function AdminUsersContent() {
             <>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-muted-foreground">
+                  <tr className="border-b border-border text-left text-muted-foreground">
                     <th className="py-2">Name</th>
                     <th className="py-2">Email</th>
                     <th className="py-2">Role</th>
@@ -59,7 +62,7 @@ function AdminUsersContent() {
                 </thead>
                 <tbody>
                   {paginated?.map((u) => (
-                    <tr key={u.id} className="border-b last:border-0">
+                    <tr key={u.id} className="border-b border-border last:border-0">
                       <td className="py-3">{u.name}</td>
                       <td className="py-3">{u.email}</td>
                       <td className="py-3">{u.role}</td>
@@ -88,12 +91,7 @@ function AdminUsersContent() {
                   Page {page} of {totalPages}
                 </p>
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
-                  >
+                  <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
                     Previous
                   </Button>
                   <Button
@@ -117,7 +115,9 @@ function AdminUsersContent() {
 export default function AdminUsersPage() {
   return (
     <RoleGuard role="ADMIN">
-      <AdminUsersContent />
+      <DashboardShell role="ADMIN">
+        <AdminUsersContent />
+      </DashboardShell>
     </RoleGuard>
   );
 }

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useCategories } from '../../../../hooks/useProperties';
-import { useCreateCategory, useDeleteCategory } from '../../../../hooks/useAdmin';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
-import { Button } from '../../../../components/ui/button';
-import { Skeleton } from '../../../../components/ui/skeleton';
-import { RoleGuard } from '../../../../components/shared/RoleGuard';
-
+import { RoleGuard } from '@/components/shared/RoleGuard';
+import { DashboardShell } from '@/components/shared/DashboardShell';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useCategories } from '@/hooks/useProperties';
+import { useCreateCategory, useDeleteCategory } from '@/hooks/useAdmin';
 
 function AdminCategoriesContent() {
   const { data: categories, isLoading } = useCategories();
@@ -22,8 +22,11 @@ function AdminCategoriesContent() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Category Management</h1>
+    <div className="max-w-2xl space-y-8">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-wider text-accent">Dashboard</p>
+        <h1 className="font-display text-3xl">Category Management</h1>
+      </div>
 
       <Card>
         <CardHeader>
@@ -37,14 +40,14 @@ function AdminCategoriesContent() {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
-            <Button onClick={handleAdd} disabled={isCreating}>
+            <Button variant="accent" onClick={handleAdd} disabled={isCreating}>
               Add
             </Button>
           </div>
 
           {isLoading && <Skeleton className="h-32 w-full" />}
           {!isLoading && (
-            <div className="divide-y">
+            <div className="divide-y divide-border">
               {categories?.map((c) => (
                 <div key={c.id} className="flex items-center justify-between py-2">
                   <span>{c.name}</span>
@@ -64,7 +67,9 @@ function AdminCategoriesContent() {
 export default function AdminCategoriesPage() {
   return (
     <RoleGuard role="ADMIN">
-      <AdminCategoriesContent />
+      <DashboardShell role="ADMIN">
+        <AdminCategoriesContent />
+      </DashboardShell>
     </RoleGuard>
   );
 }
