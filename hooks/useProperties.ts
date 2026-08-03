@@ -21,7 +21,9 @@ export function useProperties(filters: PropertyFilters = {}) {
       const res = await apiClient.get<ApiResponse<Property[]>>('/properties', {
         params: filters,
       });
-      return res.data.data;
+      return res.data.data.sort(
+        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      );
     },
   });
 }

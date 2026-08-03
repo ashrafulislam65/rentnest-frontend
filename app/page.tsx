@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-
+import Image from 'next/image';
 import { Search, ShieldCheck, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,13 @@ export default function HomePage() {
   return (
     <div>
       <section className="relative h-[560px] w-full overflow-hidden bg-secondary">
-       
+        <Image
+          src="https://images.unsplash.com/photo-1594484208280-efa00f96fc21?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt="Modern home exterior"
+          fill
+          priority
+          className="object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
