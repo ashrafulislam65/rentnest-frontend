@@ -1,11 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useProperties } from '../hooks/useProperties';
-import { Button } from '../components/ui/button';
-import { Skeleton } from '../components/ui/skeleton';
-import { PropertyCard } from '../components/shared/PropertyCard';
 
+import { Search, ShieldCheck, CreditCard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PropertyCard } from '@/components/shared/PropertyCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useProperties } from '@/hooks/useProperties';
+
+const STEPS = [
+  { icon: Search, title: 'Browse & Filter', desc: 'Search verified listings by location, price, and category.' },
+  { icon: ShieldCheck, title: 'Request & Get Approved', desc: 'Submit a request, landlords respond fast.' },
+  { icon: CreditCard, title: 'Pay Securely', desc: 'Complete payment through Stripe, no cash hassle.' },
+];
 
 export default function HomePage() {
   const { data: properties, isLoading } = useProperties();
@@ -13,44 +21,93 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="border-b bg-secondary/50">
-        <div className="mx-auto max-w-6xl px-4 py-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Find your next <span className="text-primary">home</span>, without the hassle
+      <section className="relative h-[560px] w-full overflow-hidden bg-secondary">
+       
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
+          <h1 className="font-display text-5xl leading-tight text-white sm:text-6xl">
+            Find a place<br />you&apos;ll love to call home
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+          <p className="mt-4 max-w-md text-white/85">
             Browse verified listings, request a rental, and pay securely — all in one place.
           </p>
-          <Link href="/properties">
-            <Button size="lg" className="mt-6">
-              Browse Properties
-            </Button>
-          </Link>
+
+          <div className="mt-8 flex w-full max-w-xl items-center gap-2 rounded-md bg-white p-2 shadow-xl">
+            <Search className="ml-2 h-5 w-5 shrink-0 text-muted-foreground" />
+            <Input
+              placeholder="Search by location..."
+              className="border-0 shadow-none focus-visible:ring-0"
+            />
+            <Link href="/properties">
+              <Button variant="accent">Search</Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-semibold">Featured Properties</h2>
+      <section className="mx-auto max-w-7xl px-6 py-20">
+        <div className="mb-10 flex items-end justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-accent">Featured</p>
+            <h2 className="font-display text-3xl">Popular Properties</h2>
+          </div>
+          <Link href="/properties" className="text-sm font-semibold text-accent hover:underline">
+            View all listings →
+          </Link>
+        </div>
 
         {isLoading && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full" />
+              <Skeleton key={i} className="h-80 w-full" />
             ))}
           </div>
         )}
 
         {!isLoading && featured.length === 0 && (
-          <p className="text-muted-foreground">No properties available right now. Check back soon.</p>
+          <p className="text-muted-foreground">No properties available right now.</p>
         )}
 
         {!isLoading && featured.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
         )}
+      </section>
+
+      <section className="border-t border-border bg-secondary/30">
+        <div className="mx-auto max-w-7xl px-6 py-20">
+          <div className="mb-12 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-accent">Process</p>
+            <h2 className="font-display text-3xl">How RentNest Works</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+            {STEPS.map((step) => (
+              <div key={step.title} className="text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent">
+                  <step.icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 font-display text-lg">{step.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-20 text-center">
+        <h2 className="font-display text-3xl">Have a property to rent out?</h2>
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          Join hundreds of landlords listing on RentNest — manage requests and payments in one dashboard.
+        </p>
+        <Link href="/register">
+          <Button variant="accent" size="lg" className="mt-6">
+            Get Started as a Landlord
+          </Button>
+        </Link>
       </section>
     </div>
   );
