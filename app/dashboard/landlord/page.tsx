@@ -6,16 +6,23 @@ import { DashboardShell } from '@/components/shared/DashboardShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useLandlordProperties } from '@/hooks/useProperties';
+import { useDeleteProperty, useLandlordProperties } from '@/hooks/useProperties';
 import { useLandlordRequests } from '@/hooks/useRentals';
 
 function LandlordDashboardContent() {
   const { data: properties, isLoading: propertiesLoading } = useLandlordProperties();
   const { data: requests, isLoading: requestsLoading } = useLandlordRequests();
+  const { mutate: deleteProperty, isPending: isDeleting } = useDeleteProperty();
 
   const totalProperties = properties?.length ?? 0;
   const pendingRequests = requests?.filter((r) => r.status === 'PENDING').length ?? 0;
   const activeRentals = requests?.filter((r) => r.status === 'ACTIVE').length ?? 0;
+
+  const handleDelete = (id: string, title: string) => {
+    if (confirm(`Delete "${title}"? This cannot be undone.`)) {
+      deleteProperty(id);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -56,11 +63,25 @@ function LandlordDashboardContent() {
                 <div key={p.id} className="flex items-center justify-between py-3">
                   <div>
                     <p className="font-medium">{p.title}</p>
-                    <p className="text-sm text-muted-foreground">{p.location}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {p.location} · {p.isAvailable ? 'Available' : 'Unavailable'}
+                    </p>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {p.isAvailable ? 'Available' : 'Unavailable'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/landlord/properties/${p.id}/edit`}>
+                      <Button size="sm" variant="outline">
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={isDeleting}
+                      onClick={() => handleDelete(p.id, p.title)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

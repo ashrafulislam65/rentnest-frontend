@@ -8,17 +8,33 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useCategories } from '@/hooks/useProperties';
-import { useCreateCategory, useDeleteCategory } from '@/hooks/useAdmin';
+import { useCreateCategory, useDeleteCategory, useUpdateCategory } from '@/hooks/useAdmin';
 
 function AdminCategoriesContent() {
   const { data: categories, isLoading } = useCategories();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: deleteCategory } = useDeleteCategory();
+  const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
   const [name, setName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
   const handleAdd = () => {
     if (!name.trim()) return;
     createCategory(name.trim(), { onSuccess: () => setName('') });
+  };
+
+  const startEdit = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditName(currentName);
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !editName.trim()) return;
+    updateCategory(
+      { id: editingId, name: editName.trim() },
+      { onSuccess: () => setEditingId(null) }
+    );
   };
 
   return (
@@ -49,11 +65,38 @@ function AdminCategoriesContent() {
           {!isLoading && (
             <div className="divide-y divide-border">
               {categories?.map((c) => (
-                <div key={c.id} className="flex items-center justify-between py-2">
-                  <span>{c.name}</span>
-                  <Button size="sm" variant="outline" onClick={() => deleteCategory(c.id)}>
-                    Delete
-                  </Button>
+                <div key={c.id} className="flex items-center justify-between gap-2 py-2">
+                  {editingId === c.id ? (
+                    <>
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                        className="max-w-xs"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="accent" onClick={saveEdit} disabled={isUpdating}>
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span>{c.name}</span>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => startEdit(c.id, c.name)}>
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteCategory(c.id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

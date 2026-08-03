@@ -90,3 +90,17 @@ export function useDeleteCategory() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 }
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const res = await apiClient.put<ApiResponse<Category>>(`/admin/categories/${id}`, { name });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      toast.success('Category updated');
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
