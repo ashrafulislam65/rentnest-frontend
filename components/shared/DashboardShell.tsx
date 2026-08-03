@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Home, ListChecks, Users, Tag, LogOut, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Home, ListChecks, Users, Tag, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -36,13 +37,59 @@ export function DashboardShell({
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const items = NAV_ITEMS[role];
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const panelLabel = role === 'TENANT' ? 'Tenant' : role === 'LANDLORD' ? 'Landlord' : 'Admin';
 
   return (
-    <div className="mx-auto flex max-w-7xl">
+    <div className="mx-auto flex max-w-7xl flex-col sm:flex-row">
+      {/* Mobile top bar */}
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:hidden">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {panelLabel} Panel
+          </p>
+          <p className="truncate font-display text-base">{user?.name || user?.email}</p>
+        </div>
+        <button onClick={() => setMobileNavOpen((o) => !o)} className="p-2" aria-label="Toggle nav">
+          {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {mobileNavOpen && (
+        <nav className="space-y-1 border-b border-border px-4 py-3 sm:hidden">
+          {items.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileNavOpen(false)}
+                className={cn(
+                  'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium',
+                  active ? 'bg-accent text-accent-foreground' : 'text-foreground/70 hover:bg-secondary'
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary"
+          >
+            <LogOut className="h-4 w-4" />
+            Log out
+          </button>
+        </nav>
+      )}
+
+      {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 border-r border-border px-4 py-8 sm:block">
         <div className="mb-8 px-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {role === 'TENANT' ? 'Tenant' : role === 'LANDLORD' ? 'Landlord' : 'Admin'} Panel
+            {panelLabel} Panel
           </p>
           <p className="mt-1 truncate font-display text-lg">{user?.name || user?.email}</p>
         </div>
@@ -77,7 +124,7 @@ export function DashboardShell({
         </button>
       </aside>
 
-      <div className="min-w-0 flex-1 px-6 py-8 sm:px-10">{children}</div>
+      <div className="min-w-0 flex-1 px-4 py-6 sm:px-10 sm:py-8">{children}</div>
     </div>
   );
 }

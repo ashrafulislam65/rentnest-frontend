@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StripeCheckoutForm } from '@/components/forms/StripeCheckoutForm';
 import { useCreatePaymentIntent } from '@/hooks/usePayments';
+import { Link } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -33,9 +35,16 @@ function PayPageContent({ rentalRequestId }: { rentalRequestId: string }) {
         <CardContent>
           {isPending && <Skeleton className="h-40 w-full" />}
           {isError && (
-            <p className="text-sm text-destructive">
-              Couldn&apos;t start the payment. Please try again from your dashboard.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-destructive">
+                Couldn&apos;t start the payment. This rental request may not exist or isn&apos;t approved yet.
+              </p>
+              <Link href="/dashboard/tenant">
+                <Button variant="outline" size="sm">
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </div>
           )}
           {data && (
             <Elements stripe={stripePromise} options={{ clientSecret: data.clientSecret }}>

@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MapPin, Check, Star } from 'lucide-react';
 import { toast } from 'sonner';
@@ -46,7 +47,19 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  if (!property) return null;
+  if (!property) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
+        <h1 className="font-display text-3xl">Property not found</h1>
+        <p className="text-muted-foreground">
+          This listing may have been removed or the link is incorrect.
+        </p>
+        <Link href="/properties">
+          <Button variant="accent">Browse other properties</Button>
+        </Link>
+      </div>
+    );
+  }
 
   const hasImages = property.images && property.images.length > 0;
   const images = hasImages ? property.images : [PLACEHOLDER_IMAGE];
