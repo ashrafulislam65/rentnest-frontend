@@ -32,8 +32,8 @@ export function useRental(id: string) {
 export function useSubmitRentalRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (propertyId: string) => {
-      const res = await apiClient.post<ApiResponse<Rental>>('/rentals', { propertyId });
+    mutationFn: async (payload: { propertyId: string; startDate: string; endDate: string }) => {
+      const res = await apiClient.post<ApiResponse<Rental>>('/rentals', payload);
       return res.data.data;
     },
     onSuccess: () => {

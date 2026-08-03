@@ -1,9 +1,10 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MapPin, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { useProperty } from '@/hooks/useProperties';
 import { useAuthStore } from '@/store/auth-store';
 import { useSubmitRentalRequest } from '@/hooks/useRentals';
@@ -17,6 +18,8 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
   const { user } = useAuthStore();
   const router = useRouter();
   const { mutate: requestRental, isPending } = useSubmitRentalRequest();
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const handleRequest = () => {
     if (!user) {
@@ -24,7 +27,11 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
       return;
     }
     if (user.role !== 'TENANT') return;
-    requestRental(id);
+    if (!startDate || !endDate) {
+      toast.error('Please select both move-in and move-out dates');
+      return;
+    }
+    requestRental({ propertyId: id, startDate, endDate });
   };
 
   if (isLoading) {
@@ -95,6 +102,29 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
       )}
 
       <div className="mt-10">
+        {user && user.role === 'TENANT' && property.isAvailable && (
+          <div className="mb-4 grid max-w-md grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Move-in date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Move-out date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              />
+            </div>
+          </div>
+        )}
+
         <Button
           variant="accent"
           size="lg"
