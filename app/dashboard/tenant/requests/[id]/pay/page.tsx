@@ -12,13 +12,13 @@ import { useCreatePaymentIntent } from '@/hooks/usePayments';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function PayPageContent({ rentalId }: { rentalId: string }) {
+function PayPageContent({ rentalRequestId }: { rentalRequestId: string }) {
   const { mutate: createIntent, data, isPending, isError } = useCreatePaymentIntent();
 
   useEffect(() => {
-    createIntent(rentalId);
+    createIntent(rentalRequestId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rentalId]);
+  }, [rentalRequestId]);
 
   return (
     <div className="max-w-md">
@@ -39,7 +39,7 @@ function PayPageContent({ rentalId }: { rentalId: string }) {
           )}
           {data && (
             <Elements stripe={stripePromise} options={{ clientSecret: data.clientSecret }}>
-              <StripeCheckoutForm clientSecret={data.clientSecret} paymentId={data.paymentId} />
+              <StripeCheckoutForm clientSecret={data.clientSecret} rentalRequestId={rentalRequestId} />
             </Elements>
           )}
         </CardContent>
@@ -53,7 +53,7 @@ export default function TenantPayPage({ params }: { params: Promise<{ id: string
   return (
     <RoleGuard role="TENANT">
       <DashboardShell role="TENANT">
-        <PayPageContent rentalId={id} />
+        <PayPageContent rentalRequestId={id} />
       </DashboardShell>
     </RoleGuard>
   );

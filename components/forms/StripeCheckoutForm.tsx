@@ -4,16 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { toast } from 'sonner';
-import { useConfirmPayment } from '../../hooks/usePayments';
-import { Button } from '../ui/button';
-
+import { Button } from '@/components/ui/button';
+import { useConfirmPayment } from '@/hooks/usePayments';
 
 export function StripeCheckoutForm({
   clientSecret,
-  paymentId,
+  rentalRequestId,
 }: {
   clientSecret: string;
-  paymentId: string;
+  rentalRequestId: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -46,10 +45,13 @@ export function StripeCheckoutForm({
 
     if (paymentIntent?.status === 'succeeded') {
       try {
-        await confirmPayment(paymentId);
+        await confirmPayment({
+          rentalRequestId,
+          transactionId: paymentIntent.id,
+          amount: paymentIntent.amount / 100,
+        });
         router.push('/payment/success');
       } catch {
-        // useConfirmPayment already toasts the error
         router.push('/payment/cancel');
       }
     }
@@ -68,7 +70,7 @@ export function StripeCheckoutForm({
           }}
         />
       </div>
-      <Button type="submit" className="w-full" disabled={!stripe || isProcessing}>
+      <Button type="submit" variant="accent" className="w-full" disabled={!stripe || isProcessing}>
         {isProcessing ? 'Processing payment...' : 'Pay Now'}
       </Button>
     </form>

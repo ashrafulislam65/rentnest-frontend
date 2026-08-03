@@ -2,20 +2,24 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ApiResponse, Payment } from '../types';
-import { apiClient, getApiErrorMessage } from '../lib/api-client';
-
+import { apiClient, getApiErrorMessage } from '@/lib/api-client';
+import type { ApiResponse, Payment } from '@/types';
 
 interface CreatePaymentResponse {
   clientSecret: string;
-  paymentId: string;
+}
+
+interface ConfirmPaymentPayload {
+  rentalRequestId: string;
+  transactionId: string;
+  amount: number;
 }
 
 export function useCreatePaymentIntent() {
   return useMutation({
-    mutationFn: async (rentalId: string) => {
+    mutationFn: async (rentalRequestId: string) => {
       const res = await apiClient.post<ApiResponse<CreatePaymentResponse>>('/payments/create', {
-        rentalId,
+        rentalRequestId,
       });
       return res.data.data;
     },
@@ -25,8 +29,8 @@ export function useCreatePaymentIntent() {
 
 export function useConfirmPayment() {
   return useMutation({
-    mutationFn: async (paymentId: string) => {
-      const res = await apiClient.post<ApiResponse<Payment>>('/payments/confirm', { paymentId });
+    mutationFn: async (payload: ConfirmPaymentPayload) => {
+      const res = await apiClient.post<ApiResponse<Payment>>('/payments/confirm', payload);
       return res.data.data;
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
