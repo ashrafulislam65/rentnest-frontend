@@ -3,11 +3,12 @@
 import { use, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MapPin, Check } from 'lucide-react';
+import { MapPin, Check, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProperty } from '@/hooks/useProperties';
 import { useAuthStore } from '@/store/auth-store';
 import { useSubmitRentalRequest } from '@/hooks/useRentals';
+import { usePropertyReviews } from '@/hooks/useReviews';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, PLACEHOLDER_IMAGE } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 export default function PropertyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: property, isLoading } = useProperty(id);
+  const { data: reviews } = usePropertyReviews(id);
   const { user } = useAuthStore();
   const router = useRouter();
   const { mutate: requestRental, isPending } = useSubmitRentalRequest();
@@ -96,6 +98,27 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
                 <Check className="h-3.5 w-3.5 text-accent" />
                 {item}
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {reviews && reviews.length > 0 && (
+        <div className="mt-8 border-t border-border pt-8">
+          <h2 className="font-display text-xl">Reviews</h2>
+          <div className="mt-4 space-y-4">
+            {reviews.map((review) => (
+              <div key={review.id} className="rounded-md border border-border p-4">
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < review.rating ? 'fill-accent text-accent' : 'text-muted-foreground'}`}
+                    />
+                  ))}
+                </div>
+                {review.comment && <p className="mt-2 text-sm text-foreground/80">{review.comment}</p>}
+              </div>
             ))}
           </div>
         </div>
